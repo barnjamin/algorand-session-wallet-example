@@ -40,7 +40,7 @@ function App() {
   const options = []
   if(!connected){
     for (const [k,v] of Object.entries(allowedWallets)){
-      options.push((<button key={k} onClick={()=>{connect(k)}}><img src={v.img(false)} alt='branding'></img>{k}</button>))
+      options.push((<button key={k} onClick={()=>{connect(k)}}><img src={v.img(false)} alt='branding'></img>{v.displayName()}</button>))
     }
   }else{
     options.push(<button key='disco' onClick={disconnect}>Sign out</button>)

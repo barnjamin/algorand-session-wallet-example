@@ -5,8 +5,6 @@
 npm -i algorand-session-wallet
 ```
 
-
-
 ```js
  const [sw, setSw] = useState(new SessionWallet("TestNet"))
 
