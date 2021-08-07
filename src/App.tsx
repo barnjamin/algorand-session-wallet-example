@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './App.css';
+import {sendWait, getSuggested, getPayTxn} from './algorand'
 
-import algosdk, {Algodv2, Transaction} from 'algosdk';
 import {SessionWallet, allowedWallets} from 'algorand-session-wallet'
 
 function App() {
@@ -14,74 +14,27 @@ function App() {
 
     if(!await w.connect()) return alert("Couldnt connect")
 
-    setConnected(true)
+    setConnected(w.connected())
     setAddrs(w.accountList())
     setSw(w)
   }
 
-  function disconnect(){
+  async function disconnect(){
     sw.disconnect()
     setConnected(false)
     setAddrs([])
     setSw(sw)
   }
 
-  function getPayTxn(suggested: any): Transaction {
-    const addr = sw.getDefaultAccount()
-    // From me to me, 0 algos
-    const txnobj = { from:addr, type:'pay', to:addr, ...suggested, amt: 0 }
-    return new Transaction(txnobj)
-  }
-
   async function sign(e: any) {
-
-    const client = new algosdk.Algodv2("", "https://testnet.algoexplorerapi.io", 0)
-    const suggested = await client.getTransactionParams().do()
-    suggested.lastRound = suggested.firstRound + 10
-
-    const pay_txn = getPayTxn(suggested)
+    const pay_txn = getPayTxn(await getSuggested(), sw.getDefaultAccount())
     const [s_pay_txn] = await sw.signTxn([pay_txn])
 
-    const {txId} = await client.sendRawTransaction([s_pay_txn.blob]).do()
-
-    console.log("Submitting transaction: ", txId)
-    const result = await waitForConfirmation(client, txId, 4)
-    console.log("Result: ", result)
+    console.log("Sending txn")
+    const result = await sendWait([s_pay_txn.blob])
+    console.log(result)
   }
 
-  async function waitForConfirmation(algodclient: Algodv2, txId: string, timeout: number): Promise<any> {
-    if (algodclient == null || txId == null || timeout < 0) {
-      throw new Error('Bad arguments.');
-    }
-
-    const status = await algodclient.status().do();
-    if (typeof status === 'undefined')
-      throw new Error('Unable to get node status');
-
-    const startround = status['last-round'] + 1;
-    let currentround = startround;
-  
-    /* eslint-disable no-await-in-loop */
-    while (currentround < startround + timeout) {
-      const pending = await algodclient
-        .pendingTransactionInformation(txId)
-        .do();
-
-      if (pending !== undefined) {
-        if ( pending['confirmed-round'] !== null && pending['confirmed-round'] > 0) 
-          return pending;
-  
-        if ( pending['pool-error'] != null && pending['pool-error'].length > 0) 
-          throw new Error( `Transaction Rejected pool error${pending['pool-error']}`);
-      }
-
-      await algodclient.statusAfterBlock(currentround).do();
-      currentround += 1;
-    }
-
-    /* eslint-enable no-await-in-loop */
-    throw new Error(`Transaction not confirmed after ${timeout} rounds!`);
-}
 
 
   const options = []
@@ -98,8 +51,10 @@ function App() {
 
   return (
     <div className="App">
-      {options}
-      <ul> {accts} </ul>
+      <div className='actions'>
+        {options}
+      </div>
+      <ul className='acct-list'> {accts} </ul>
     </div>
   );
 }
