@@ -21,7 +21,7 @@ export function getPayTxn(suggested: any, addr: string): Transaction {
         ...suggested, 
     }
     return new Transaction(txnobj)
-  }
+}
 
 
 export async function waitForConfirmation(txId: string, timeout: number): Promise<any> {

@@ -1,16 +1,58 @@
 import React, { useState } from 'react';
 import './App.css';
 import {sendWait, getSuggested, getPayTxn} from './algorand'
+import {PopupPermissions, PopupProps} from './PopupPermissions'
+import {PermissionCallback, PermissionResult, SessionWallet, SignedTxn, allowedWallets} from 'algorand-session-wallet'
 
-import {SessionWallet, allowedWallets} from 'algorand-session-wallet'
+
+const pprops = {
+	isOpen: false,
+	result: (s: string): void => {}
+
+}
 
 function App() {
-  const [sw, setSw] = useState(new SessionWallet("TestNet"))
+	
+  const [popupProps, setPopupProps] = useState(pprops)
+
+  const permPopupCallback = {
+  	async request(pr: PermissionResult): Promise<SignedTxn[]> {
+	    // set a local var that will be modified in the popup
+	    let result = ""
+	    function setResult(res: string){ result = res}
+
+  	    setPopupProps({ isOpen:true, result: setResult })		
+	    
+	    // Wait for it to finish
+
+	    const timeout = async(ms: number) => new Promise(res => setTimeout(res, ms));
+	    async function wait(): Promise<SignedTxn[]> {
+		    while(result === "") await timeout(50);
+
+		    if(result == "approve") return pr.approved()
+		    return pr.declined()
+	    }
+
+	    //get signed
+	    const txns = await wait()
+
+	    //close popup
+	    setPopupProps(pprops)
+
+	    //return signed
+	    return txns
+      }
+  }
+
+  const [sw, setSw] = useState(new SessionWallet("TestNet", permPopupCallback))
   const [addrs, setAddrs] = useState(sw.accountList())
   const [connected, setConnected] = useState(sw.connected())
 
+
   async function connect(choice: string){
-    const w = new SessionWallet("TestNet", choice)
+
+
+    const w = new SessionWallet("TestNet", permPopupCallback, choice)
 
     if(!await w.connect()) return alert("Couldnt connect")
 
@@ -27,7 +69,9 @@ function App() {
   }
 
   async function sign(e: any) {
-    const pay_txn = getPayTxn(await getSuggested(), sw.getDefaultAccount())
+    const suggested = await getSuggested()
+    const pay_txn = getPayTxn(suggested, sw.getDefaultAccount())
+
     const [s_pay_txn] = await sw.signTxn([pay_txn])
 
     console.log("Sending txn")
@@ -50,11 +94,12 @@ function App() {
   const accts =  addrs.map((a)=>{ return (<li key={a}>{a}</li>) })
 
   return (
-    <div className="App">
+    <div id='app' className="App">
       <div className='actions'>
         {options}
       </div>
       <ul className='acct-list'> {accts} </ul>
+      <PopupPermissions {...popupProps} />
     </div>
   );
 }
