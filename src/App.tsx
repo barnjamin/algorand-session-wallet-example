@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import './App.css';
 import {sendWait, getSuggested, getPayTxn} from './algorand'
-import {PopupPermissions, PopupProps} from './PopupPermissions'
-import {PermissionCallback, PermissionResult, SessionWallet, SignedTxn, allowedWallets} from 'algorand-session-wallet'
+import {PopupPermissions} from './PopupPermissions'
+import { PermissionResult, SessionWallet, SignedTxn, allowedWallets} from 'algorand-session-wallet'
 
 
 const pprops = {
@@ -29,7 +29,7 @@ function App() {
 	    async function wait(): Promise<SignedTxn[]> {
 		    while(result === "") await timeout(50);
 
-		    if(result == "approve") return pr.approved()
+		    if(result === "approve") return pr.approved()
 		    return pr.declined()
 	    }
 

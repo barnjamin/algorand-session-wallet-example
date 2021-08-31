@@ -1,6 +1,4 @@
-import React, { useState, useEffect } from 'react';
 import ReactModal from 'react-modal';
-import {SignedTxn} from 'algorand-session-wallet';
 
 
 export type PopupProps = {
@@ -19,7 +17,6 @@ const customStyles = {
     transform: 'translate(-50%, -50%)',
   },
 };
-
 
 
 ReactModal.setAppElement('#root');
