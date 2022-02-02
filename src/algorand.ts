@@ -1,6 +1,9 @@
 import algosdk, {Transaction} from 'algosdk';
 
-const client = new algosdk.Algodv2("", "https://testnet.algoexplorerapi.io", 0)
+const token = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+const host = "http://localhost"
+const port = 4001
+export const client = new algosdk.Algodv2(token, host, port)
 
 export async function sendWait(txns: any[]) {
     const {txId} = await client.sendRawTransaction(txns).do()

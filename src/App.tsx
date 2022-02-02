@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import './App.css';
-import {sendWait, getSuggested, getPayTxn} from './algorand'
+import {client, getSuggested, getPayTxn} from './algorand'
 import {PopupPermissions} from './PopupPermissions'
 import { PermissionResult, SessionWallet, SignedTxn, allowedWallets} from 'algorand-session-wallet'
+import algosdk from 'algosdk';
 
 
 const pprops = {
@@ -41,7 +41,7 @@ function App() {
 
 	    //return signed
 	    return txns
-      }
+    }
   }
 
   const [sw, setSw] = useState(new SessionWallet("TestNet", permPopupCallback))
@@ -70,12 +70,14 @@ function App() {
 
   async function sign(e: any) {
     const suggested = await getSuggested()
+
+    const comp = new algosdk.AtomicTransactionComposer()
     const pay_txn = getPayTxn(suggested, sw.getDefaultAccount())
 
-    const [s_pay_txn] = await sw.signTxn([pay_txn])
+    comp.addTransaction({txn:pay_txn, signer:sw.getSigner()})
 
     console.log("Sending txn")
-    const result = await sendWait([s_pay_txn.blob])
+    const result = await comp.execute(client, 2)
     console.log(result)
   }
 
