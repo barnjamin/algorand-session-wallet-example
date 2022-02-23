@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import {client, getSuggested, getPayTxn} from './algorand'
+import { getSuggested, getPayTxn} from './algorand'
 import {PopupPermissions} from './PopupPermissions'
 import { PermissionResult, SessionWallet, SignedTxn, allowedWallets} from 'algorand-session-wallet'
 import algosdk from 'algosdk';
@@ -77,8 +77,9 @@ function App() {
     comp.addTransaction({txn:pay_txn, signer:sw.getSigner()})
 
     console.log("Sending txn")
-    const result = await comp.execute(client, 2)
-    console.log(result)
+    //const result = await comp.execute(client, 2)
+    const txns = await comp.buildGroup()
+    console.log(txns)
   }
 
 
