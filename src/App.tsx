@@ -44,7 +44,7 @@ function App() {
     }
   }
 
-  const [sw, setSw] = useState(new SessionWallet("TestNet", permPopupCallback))
+  const [sw, setSw] = useState(new SessionWallet("TestNet", permPopupCallback, undefined, "pk_live_D17FD8D89621B5F3"))
   const [addrs, setAddrs] = useState(sw.accountList())
   const [connected, setConnected] = useState(sw.connected())
 
@@ -52,7 +52,7 @@ function App() {
   async function connect(choice: string){
 
 
-    const w = new SessionWallet("TestNet", permPopupCallback, choice)
+    const w = new SessionWallet("TestNet", permPopupCallback, choice, "pk_live_D17FD8D89621B5F3")
 
     if(!await w.connect()) return alert("Couldnt connect")
 
@@ -78,7 +78,7 @@ function App() {
 
     console.log("Sending txn")
     //const result = await comp.execute(client, 2)
-    const txns = await comp.buildGroup()
+    const txns = await comp.gatherSignatures()
     console.log(txns)
   }
 
